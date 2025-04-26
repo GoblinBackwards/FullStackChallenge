@@ -9,7 +9,17 @@ string connectionStr = builder.Configuration.GetConnectionString("main")
 builder.Services.AddSqlServer<EmployeeDb>(connectionString: connectionStr);
 builder.Services.AddOpenApi();
 
+const string corsPolicyName = "_corsAllowLocalhost";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(corsPolicyName, policy => {
+        policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback);
+        policy.WithMethods("GET");
+    });
+});
+
 var app = builder.Build();
+app.UseCors(corsPolicyName);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
