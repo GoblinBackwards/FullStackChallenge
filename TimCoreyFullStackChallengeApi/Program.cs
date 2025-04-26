@@ -1,6 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Protocols.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
+string connectionStr = builder.Configuration.GetConnectionString("main")
+    ?? throw new InvalidConfigurationException("Connection string is missing from the configuration.json file.");
+
+builder.Services.AddSqlServer<EmployeeDb>(connectionString: connectionStr);
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -12,5 +18,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapGet("/", async (EmployeeDb db) =>
+{
+    var employees = await db.Employees.ToListAsync();
+    return Results.Ok(employees);
+});
 
 app.Run();
